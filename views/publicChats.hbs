@@ -13,6 +13,20 @@
     font: 13px Helvetica, Arial;
   }
 
+  .fa-envelope {
+    position: relative;
+  }
+
+  .notification {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    border-radius: 50%;
+  }
+
   form {
     padding: 3px;
     position: fixed;
@@ -150,6 +164,7 @@
         return
       }
       socket.emit('chat message', { id: socket.id, msg: $('#m').val() })
+      socket.emit('public message notification', { id: socket.id })
       $('#m').val('')
       return false
     });
@@ -205,6 +220,7 @@
     socket.emit('history')
   })
 
+
   //顯示在線使用者
   socket.on('new user', (data) => {
     data.map(user => {
@@ -223,7 +239,17 @@
     $('#messages').append(msg)
   })
 
-  //使用者正在輸入
+  //公開訊息通知
+  socket.on('public message notification', () => {
+    const notification = `<div class="notification"></div>`
+    $('.public').append(notification)
+  })
+
+  //私人訊息通知
+  socket.on('private message notification', () => {
+    const notification = `<div class="notification"></div>`
+    $('.privacy').append(notification)
+  })
 
   //使用者離線
   socket.on('user disconnected', (data) => {

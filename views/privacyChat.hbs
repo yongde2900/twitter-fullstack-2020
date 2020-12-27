@@ -13,6 +13,20 @@
         font: 13px Helvetica, Arial;
     }
 
+    .fa-envelope {
+        position: relative;
+    }
+
+    .notification {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        background-color: #f00;
+        border-radius: 50%;
+    }
+
     form {
         padding: 3px;
         position: fixed;
@@ -147,6 +161,7 @@
         $('form').submit(function (e) {
             e.preventDefault(); // prevents page reloading
             socket.emit('chat message', { id: socket.id, msg: $('#m').val() });
+            socket.emit('private message notification', { id: socket.id })
             $('#m').val('');
             return false;
         });
@@ -198,31 +213,28 @@
 
     /* Event */
     socket.on('connect', (user) => {
-        socket.emit('new user', socket.id)
         socket.emit('history')
     })
 
-
-    //broadcast通知所有在線使用者
-    socket.on("hello", (name) => {
-        const msg = `<li class="rounded-pill mt-2">
-        <p>${name} 上線</p>
-      </li>`
-        $('#messages').append(msg)
+    //公開訊息通知
+    socket.on('public message notification', (data) => {
+        if (data.id === socket.id) {
+            return
+        }
+        const notification = `<div class="notification"></div>`
+        $('.public').append(notification)
     })
 
-    //使用者正在輸入
-
-    //使用者離線
-    socket.on('user disconnected', (data) => {
-        const { id, name } = data
-        msg = `<li class="rounded-pill mt-2">
-        <p>${name} 離線</p>
-      </li>`
-        $('#messages').append(msg)
-        $(`.user-${id}`).remove()
+    //私人訊息通知
+    socket.on('private message notification', (data) => {
+        if (data.id === socket.id) {
+            return
+        }
+        const notification = `<div class="notification"></div>`
+        $('.privacy').append(notification)
     })
 
+    //顯示歷史訊息
     socket.once('history', ({ msgs }) => {
         msgs.forEach(msgs => {
             historuMessage(msgs)
