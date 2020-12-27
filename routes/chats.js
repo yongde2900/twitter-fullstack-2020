@@ -6,6 +6,7 @@ const User = db.User
 // -----------------------------------------------------------------------------------
 // router.get('/', chatController.get)
 router.get('/public', chatController.getPublicChat)
+router.get('/', chatController.getPrivacyChat)
 
 
 // -----------------------------------------------------------------------------------
