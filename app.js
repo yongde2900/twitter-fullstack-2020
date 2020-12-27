@@ -18,22 +18,22 @@ const PORT = process.env.PORT || 3000
 const sessionMiddleware = session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false })
 
 //socket
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
-const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+const server = require('http').createServer(app)
+const io = require('socket.io')(server)
+const wrap = middleware => (socket, next) => middleware(socket.request, {}, next)
 const activeUsers = new Set()
 
-io.use(wrap(sessionMiddleware));
-io.use(wrap(passport.initialize()));
-io.use(wrap(passport.session()));
+io.use(wrap(sessionMiddleware))
+io.use(wrap(passport.initialize()))
+io.use(wrap(passport.session()))
 
 io.use((socket, next) => {
   if (socket.request.user) {
-    next();
+    next()
   } else {
     next(new Error('unauthorized'))
   }
-});
+})
 const db = require('./models')
 const moment = require('moment')
 moment.locale('zh-TW')
@@ -41,29 +41,45 @@ const Tweet = db.Tweet
 const Chat = db.Chat
 const User = db.User
 io.on('connection', (socket) => {
+
+  const str = socket.handshake.headers.referer.split('=')
+  const roomName = str[1] || 'public'
+  socket.join(`${roomName}`)
+
   console.log(`new connection ${socket.id}`)
-  socket.broadcast.emit("hello", socket.request.user.name)
+  socket.to(`${roomName}`).broadcast.emit("hello", socket.request.user.name)
+  socket.on('createRoom', (data) => {
+    socket.join(`${data}`)
+  })
+
 
   socket.on('new user', (data) => {
     activeUsers.add(socket.request.user)
-    io.emit('new user', [...activeUsers])
+    io.to(`${roomName}`).emit('new user', [...activeUsers])
   })
+
 
   socket.on('chat message', (data) => {
     data.user = socket.request.user
-    console.log('----------------------- this is data in "chat message"' + data)
-    Chat.create({
+    const msg = {
       UserId: socket.request.user.id,
-      message: data.msg
-    })
-    io.emit('chat message', data);
-  });
-  socket.on('disconnect', () => {
-    activeUsers.delete(socket.request.user)
-    io.emit('user disconnected', { id: socket.request.user.id, name: socket.request.user.name })
+      message: data.msg,
+      roomName: roomName
+    }
+    Chat.create(msg)
+    io.to(`${roomName}`).emit('chat message', data)
   })
+
+
+  socket.to(`${roomName}`).on('disconnect', () => {
+    activeUsers.delete(socket.request.user)
+    io.to(`${roomName}`).emit('user disconnected', { id: socket.request.user.id, name: socket.request.user.name })
+  })
+
+
   socket.on('history', () => {
-    Chat.findAll({ raw: true, nest: true, order: [['createdAt', 'ASC']], include: [User] }).then(msgs => {
+    Chat.findAll({ raw: true, nest: true, order: [['createdAt', 'ASC']], include: [User], where: { roomName: roomName } }).then(msgs => {
+      console.log(msgs)
       msgs = msgs.map(item => ({
         user: item.User.name,
         avatar: item.User.avatar,
@@ -71,10 +87,11 @@ io.on('connection', (socket) => {
         formattedTime: moment(item.createdAt).format('a h:mm'),
         currentUser: item.User.id === socket.request.user.id ? true : false
       }))
-      io.emit('history', { msgs })
+      io.to(`${roomName}`).emit('history', { msgs })
     })
   })
-});
+})
+
 
 server.listen(PORT);
 
@@ -96,16 +113,7 @@ app.use((req, res, next) => {
 
 app.use('/upload', express.static(__dirname + '/upload'))
 
-app.get('/chat', (req, res) => {
-  const isAuthenticated = !!req.user;
-  if (isAuthenticated) {
-    console.log(`user is authenticated, session is ${req.session.id}`);
-    return res.render('publicChats');
-  } else {
-    console.log("unknown user");
-    return res.redirect('/signin')
-  }
-})
+
 
 
 // use helpers.getUser(req) to replace req.user
