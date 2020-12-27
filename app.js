@@ -14,8 +14,8 @@ const session = require('express-session')
 const passport = require('./config/passport')
 
 const app = express()
-const port = process.env.PORT || 3000
-const sessionMiddleware = session({ secret: 'simpleTweetSecret', resave: false, saveUninitialized: false })
+const PORT = process.env.PORT || 3000
+const sessionMiddleware = session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false })
 
 //socket
 const server = require('http').createServer(app);
@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
   })
 });
 
-server.listen(3000);
+server.listen(PORT);
 
 app.use(express.static('public'))
 app.engine('hbs', exhbs({ defaultLayout: 'main', extname: 'hbs', helpers: require('./config/handlebars-helper') }))

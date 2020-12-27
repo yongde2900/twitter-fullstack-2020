@@ -46,11 +46,6 @@
 <script>
   const socket = io()
 
-  // ----------------------------------------------
-
-
-  // ----------------------------------------------
-
   $(function () {
     $('form').submit(function (e) {
       e.preventDefault(); // prevents page reloading
@@ -177,9 +172,9 @@
     msgs.forEach(msg => {
       let html = ''
       if (msg.currentUser) {
-        html = getReceivedMsg(msg.id, msg.formattedTime, msg.message, msg.avatar)
-      } else {
         html = getMyMessage(msg.formattedTime, msg.message)
+      } else {
+        html = getReceivedMsg(msg.id, msg.formattedTime, msg.message, msg.avatar)
       }
 
       $('#messages').append(html)
