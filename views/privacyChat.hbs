@@ -151,11 +151,14 @@
             return false;
         });
         socket.on('chat message', function (data) {
-            const { id, msg, user } = data
+            const { id, msg, user, roomName } = data
             addNewMessage({ id: id, user: user.name, message: msg })
+
             $(document).ready
                 (function () {
                     $(".card-body").scrollTop($(document).height() + 100);
+                    const html = `${msg}`
+                    $(`#${roomName}`).html(html)
                 }
                 );
         });
@@ -227,6 +230,7 @@
         msgs.forEach(msgs => {
             historuMessage(msgs)
         })
+
     })
 </script>
 <script src="/js/popper.min.js"></script>

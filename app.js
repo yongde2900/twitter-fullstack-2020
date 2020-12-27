@@ -48,9 +48,6 @@ io.on('connection', (socket) => {
 
   console.log(`new connection ${socket.id}`)
   socket.to(`${roomName}`).broadcast.emit("hello", socket.request.user.name)
-  socket.on('createRoom', (data) => {
-    socket.join(`${data}`)
-  })
 
 
   socket.on('new user', (data) => {
@@ -61,6 +58,7 @@ io.on('connection', (socket) => {
 
   socket.on('chat message', (data) => {
     data.user = socket.request.user
+    data.roomName = roomName
     const msg = {
       UserId: socket.request.user.id,
       message: data.msg,
@@ -76,7 +74,7 @@ io.on('connection', (socket) => {
     io.to(`${roomName}`).emit('user disconnected', { id: socket.request.user.id, name: socket.request.user.name })
   })
 
-  
+
   socket.on('history', () => {
     Chat.findAll({ raw: true, nest: true, order: [['createdAt', 'ASC']], include: [User], where: {roomName: roomName} }).then(msgs => {
       console.log(msgs)
