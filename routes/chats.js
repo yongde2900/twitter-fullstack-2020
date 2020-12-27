@@ -1,16 +1,12 @@
 const express = require('express')
 const router = express.Router()
-const io = require('../node_modules/socket.io/client-dist/socket.io')
-
 const chatController = require('../controllers/chatController')
-
+const db = require('../models')
+const User = db.User
 // -----------------------------------------------------------------------------------
-
+router.get('/', chatController.getPrivacyChat)
 router.get('/public', chatController.getPublicChat)
-router.get('/', (req, res) => {
-    res.locals.roomName = req.query.roomName
-    res.render('privacyChat', { roomName: req.query.roomName })
-})
+
 
 // -----------------------------------------------------------------------------------
 

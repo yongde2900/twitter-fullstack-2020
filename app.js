@@ -29,7 +29,6 @@ io.use(wrap(passport.session()));
 
 io.use((socket, next) => {
   if (socket.request.user) {
-    let roomName = socket.handshake.query.roomName
     next();
   } else {
     next(new Error('unauthorized'))
@@ -42,6 +41,7 @@ const Tweet = db.Tweet
 const Chat = db.Chat
 const User = db.User
 io.on('connection', (socket) => {
+  console.log(socket.handshake)
   const str = socket.handshake.headers.referer.split('=')
   const roomName = str[1] || 'public'
   socket.join(`${roomName}`)
@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
     Chat.create(msg)
     io.to(`${roomName}`).emit('chat message', data);
   });
-  socket.on('disconnect', () => {
+  socket.to(`${roomName}`).on('disconnect', () => {
     activeUsers.delete(socket.request.user)
     io.to(`${roomName}`).emit('user disconnected', { id: socket.request.user.id, name: socket.request.user.name })
   })
@@ -104,16 +104,7 @@ app.use((req, res, next) => {
 
 app.use('/upload', express.static(__dirname + '/upload'))
 
-app.get('/chat', (req, res) => {
-  const isAuthenticated = !!req.user;
-  if (isAuthenticated) {
-    console.log(`user is authenticated, session is ${req.session.id}`);
-    return res.render('publicChats');
-  } else {
-    console.log("unknown user");
-    return res.redirect('/signin')
-  }
-})
+
 
 
 // use helpers.getUser(req) to replace req.user
