@@ -29,7 +29,6 @@ io.use(wrap(passport.session()));
 
 io.use((socket, next) => {
   if (socket.request.user) {
-    console.log(socket.handshake)
     let roomName = socket.handshake.query.roomName
     next();
   } else {
@@ -43,58 +42,47 @@ const Tweet = db.Tweet
 const Chat = db.Chat
 const User = db.User
 io.on('connection', (socket) => {
-  const roomName = socket.handshake.query.roomName
-
+  const str = socket.handshake.headers.referer.split('=')
+  const roomName = str[1] || 'public'
+  socket.join(`${roomName}`)
   console.log(`new connection ${socket.id}`)
-  socket.broadcast.emit("hello", socket.request.user.name)
+  socket.to(`${roomName}`).broadcast.emit("hello", socket.request.user.name)
   socket.on('createRoom', (data) => {
-    console.log('creat')
     socket.join(`${data}`)
-    console.log(socket.room)
   })
   socket.on('new user', (data) => {
     activeUsers.add(socket.request.user)
-    io.emit('new user', [...activeUsers])
+    io.to(`${roomName}`).emit('new user', [...activeUsers])
   })
 
   socket.on('chat message', (data) => {
     data.user = socket.request.user
-    Chat.create({
+    const msg = {
       UserId: socket.request.user.id,
-      message: data.msg
-    })
-    io.emit('chat message', data);
+      message: data.msg,
+      roomName: roomName
+    }
+    Chat.create(msg)
+    io.to(`${roomName}`).emit('chat message', data);
   });
   socket.on('disconnect', () => {
     activeUsers.delete(socket.request.user)
-    io.emit('user disconnected', { id: socket.request.user.id, name: socket.request.user.name })
+    io.to(`${roomName}`).emit('user disconnected', { id: socket.request.user.id, name: socket.request.user.name })
   })
   socket.on('history', () => {
-    Chat.findAll({ raw: true, nest: true, order: [['createdAt', 'ASC']], include: [User] }).then(msgs => {
+    Chat.findAll({ raw: true, nest: true, order: [['createdAt', 'ASC']], include: [User], where: {roomName: roomName} }).then(msgs => {
+      console.log(msgs)
       msgs = msgs.map(item => ({
         user: item.User.name,
         message: item.message,
         formattedTime: moment(item.createdAt).format('a h:mm'),
         currentUser: item.User.id === socket.request.user.id ? true : false
       }))
-      console.log(msgs)
-      io.emit('history', { msgs })
+      io.to(`${roomName}`).emit('history', { msgs })
     })
   })
 });
 
-const io2 = require('socket.io')({
-  path: '/chats'
-})
-io2.on('connetction', (socket) => {
-  console.log('connect')
-  const data = 2
-  socket.emit('new', data)
-
-  socket.on('add', (data) => {
-    console.log(data)
-  })
-})
 
 server.listen(3000);
 
