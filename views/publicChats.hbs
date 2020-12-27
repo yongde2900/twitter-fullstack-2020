@@ -4,6 +4,74 @@
     background-color: LightGray;
   }
 
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font: 13px Helvetica, Arial;
+  }
+
+  .fa-envelope {
+    position: relative;
+  }
+
+  .notification {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    border-radius: 50%;
+  }
+
+  form {
+    padding: 3px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+
+  form input {
+    background: white;
+    border: #DF6A2C 1px solid;
+    padding: 10px;
+    width: 30%;
+    margin-right: 0.5%;
+  }
+
+  form button {
+    width: 9%;
+    background: rgb(130, 224, 255);
+    border: none;
+    padding: 10px;
+  }
+
+  #messages {
+    position: relative;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  #messages li {
+    width: 20em;
+    background: #eee;
+    padding: 5px 10px;
+  }
+
+  #messages li:nth-child(odd) {
+    background: #eee;
+  }
+
+  .my-msg {
+    position: relative;
+    right: 0;
+  }
+
   .currentUser-chat-messahe {
     border: 0px;
     background-color: orange;
@@ -49,16 +117,24 @@
   $(function () {
     $('form').submit(function (e) {
       e.preventDefault(); // prevents page reloading
-      socket.emit('chat message', { id: socket.id, msg: $('#m').val() });
-      $('#m').val('');
-      return false;
+      if (!$('#m').val().trim()) {
+        return
+      }
+      socket.emit('chat message', { id: socket.id, msg: $('#m').val() })
+      socket.emit('public message notification', { id: socket.id })
+      $('#m').val('')
+      return false
     });
     socket.on('chat message', function (data) {
       const { id, msg, user, avatar } = data
       console.log(data)
       addNewMessage({ id: id, user: user.name, message: msg, avatar: user.avatar })
-      // const message = `${id} : ${msg}`
-      // $('#messages').append($('<li>').text(message));
+
+      $(document).ready
+        (function () {
+          $(".card-body").scrollTop($(document).height() + 100);
+        }
+        );
     });
   });
 
@@ -115,6 +191,7 @@
     socket.emit('history')
   })
 
+
   //顯示在線使用者
   socket.on('new user', (data) => {
     $('#onlineUserLength').text(`${data.length}`)
@@ -153,7 +230,17 @@
     $('#onlineUserLength').text(onlineUserLength + 1)
   })
 
-  //使用者正在輸入
+  //公開訊息通知
+  socket.on('public message notification', () => {
+    const notification = `<div class="notification"></div>`
+    $('.public').append(notification)
+  })
+
+  //私人訊息通知
+  socket.on('private message notification', () => {
+    const notification = `<div class="notification"></div>`
+    $('.privacy').append(notification)
+  })
 
   //使用者離線
   socket.on('user disconnected', (data) => {
