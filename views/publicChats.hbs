@@ -149,17 +149,20 @@
       if (!$('#m').val().trim()) {
         return
       }
-      socket.emit('chat message', { id: socket.id, msg: $('#m').val() });
-      $('#m').val('');
-      return false;
+      socket.emit('chat message', { id: socket.id, msg: $('#m').val() })
+      $('#m').val('')
+      return false
     });
     socket.on('chat message', function (data) {
       const { id, msg, user } = data
       addNewMessage({ id: id, user: user.name, message: msg })
-      // const message = `${id} : ${msg}`
-      // $('#messages').append($('<li>').text(message));
-    });
-  });
+      $(document).ready
+        (function () {
+          $(".card-body").scrollTop($(document).height() + 100)
+        }
+        )
+    })
+  })
 
   /* function */
   const addNewMessage = ({ id, user, message }) => {
@@ -236,6 +239,11 @@
     msgs.forEach(msgs => {
       historuMessage(msgs)
     })
+    $(document).ready
+      (function () {
+        $(".card-body").scrollTop($(document).height() + 100);
+      }
+      );
   })
 </script>
 <script src="/js/popper.min.js"></script>

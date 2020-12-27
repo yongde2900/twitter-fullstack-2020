@@ -18,7 +18,6 @@ module.exports = {
   },
   getPrivacyChat: (req, res) => {
     const currentUser = req.user
-    res.locals.roomName = req.query.roomName
     User.findAll({raw: true, where: {role: 'user'}}).then(users => {
         users = users.filter( user => user.id !== currentUser.id)
         users = users.map( user => {

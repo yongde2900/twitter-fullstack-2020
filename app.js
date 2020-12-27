@@ -18,22 +18,22 @@ const port = process.env.PORT || 3000
 const sessionMiddleware = session({ secret: 'simpleTweetSecret', resave: false, saveUninitialized: false })
 
 //socket
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
-const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+const server = require('http').createServer(app)
+const io = require('socket.io')(server)
+const wrap = middleware => (socket, next) => middleware(socket.request, {}, next)
 const activeUsers = new Set()
 
-io.use(wrap(sessionMiddleware));
-io.use(wrap(passport.initialize()));
-io.use(wrap(passport.session()));
+io.use(wrap(sessionMiddleware))
+io.use(wrap(passport.initialize()))
+io.use(wrap(passport.session()))
 
 io.use((socket, next) => {
   if (socket.request.user) {
-    next();
+    next()
   } else {
     next(new Error('unauthorized'))
   }
-});
+})
 const db = require('./models')
 const moment = require('moment')
 moment.locale('zh-TW')
@@ -41,19 +41,23 @@ const Tweet = db.Tweet
 const Chat = db.Chat
 const User = db.User
 io.on('connection', (socket) => {
-  console.log(socket.handshake)
+
   const str = socket.handshake.headers.referer.split('=')
   const roomName = str[1] || 'public'
   socket.join(`${roomName}`)
+
   console.log(`new connection ${socket.id}`)
   socket.to(`${roomName}`).broadcast.emit("hello", socket.request.user.name)
   socket.on('createRoom', (data) => {
     socket.join(`${data}`)
   })
+
+
   socket.on('new user', (data) => {
     activeUsers.add(socket.request.user)
     io.to(`${roomName}`).emit('new user', [...activeUsers])
   })
+
 
   socket.on('chat message', (data) => {
     data.user = socket.request.user
@@ -63,12 +67,16 @@ io.on('connection', (socket) => {
       roomName: roomName
     }
     Chat.create(msg)
-    io.to(`${roomName}`).emit('chat message', data);
-  });
+    io.to(`${roomName}`).emit('chat message', data)
+  })
+
+
   socket.to(`${roomName}`).on('disconnect', () => {
     activeUsers.delete(socket.request.user)
     io.to(`${roomName}`).emit('user disconnected', { id: socket.request.user.id, name: socket.request.user.name })
   })
+
+  
   socket.on('history', () => {
     Chat.findAll({ raw: true, nest: true, order: [['createdAt', 'ASC']], include: [User], where: {roomName: roomName} }).then(msgs => {
       console.log(msgs)
@@ -81,10 +89,10 @@ io.on('connection', (socket) => {
       io.to(`${roomName}`).emit('history', { msgs })
     })
   })
-});
+})
 
 
-server.listen(3000);
+server.listen(3000)
 
 app.use(express.static('public'))
 app.engine('hbs', exhbs({ defaultLayout: 'main', extname: 'hbs', helpers: require('./config/handlebars-helper') }))
