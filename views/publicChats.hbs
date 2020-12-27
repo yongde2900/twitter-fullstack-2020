@@ -60,8 +60,12 @@
       const { id, msg, user, avatar } = data
       console.log(data)
       addNewMessage({ id: id, user: user.name, message: msg, avatar: user.avatar })
-      // const message = `${id} : ${msg}`
-      // $('#messages').append($('<li>').text(message));
+
+      $(document).ready
+      (function () {
+        $(".card-body").scrollTop($(document).height() + 100);
+      }
+      );
     });
   });
 

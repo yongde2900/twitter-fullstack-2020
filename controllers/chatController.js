@@ -6,12 +6,6 @@ const User = db.User
 // -----------------------------------------------------------------------------------
 
 module.exports = {
-<<<<<<< HEAD
-  getPublicChat: async (req, res) => {
-
-    return res.render('publicChats', {
-      navPage: 'chatpublic',
-=======
   getPublicChat:  (req, res) => {
     const isAuthenticated = !!req.user;
     if (isAuthenticated) {
@@ -33,7 +27,6 @@ module.exports = {
             return user
         })
         res.render('privacyChat', { roomName: req.query.roomName, currentUser, users })
->>>>>>> 0e2963ee87e80e82dd4d104143a549cafa889c82
     })
 }
 }
