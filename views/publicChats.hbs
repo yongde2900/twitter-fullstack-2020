@@ -57,7 +57,6 @@
       return false
     });
     socket.on('chat message', function (data) {
-<<<<<<< HEAD
       const { id, msg, user, avatar } = data
       console.log(data)
       addNewMessage({ id: id, user: user.name, message: msg, avatar: user.avatar })
@@ -65,17 +64,6 @@
       // $('#messages').append($('<li>').text(message));
     });
   });
-=======
-      const { id, msg, user } = data
-      addNewMessage({ id: id, user: user.name, message: msg })
-      $(document).ready
-        (function () {
-          $(".card-body").scrollTop($(document).height() + 100)
-        }
-        )
-    })
-  })
->>>>>>> 0e2963ee87e80e82dd4d104143a549cafa889c82
 
   /* function */
   function getMyMessage(formattedTime, message) {
