@@ -230,24 +230,12 @@ module.exports = {
 
     // ---------------------------------------------------------------------------------------
 
-    console.log('--------------------------------------------------------')
-    console.log('req.files' + req)
-    console.log('req.files.avatar' + req.files.avatar)
-    console.log('req.files.cover' + req.files.cover)
-
     const currentUser = await User.findByPk(req.params.id)
     const avatarPath = req.files.avatar ? req.files.avatar[0].path : ''
     const coverPath = req.files.cover ? req.files.cover[0].path : ''
 
-    console.log('currentUser ' + currentUser.id)
-    console.log('avatarPath ' + avatarPath)
-    console.log('coverPath ' + coverPath)
-
     const avatarFile = avatarPath ? await getImgurPath(avatarPath) : currentUser.avatar
     const coverFile = coverPath ? await getImgurPath(coverPath) : currentUser.cover
-
-    console.log('avatarFile ' + avatarFile)
-    console.log('coverFile ' + coverFile)
 
     return currentUser.update({
       name: req.body.name,

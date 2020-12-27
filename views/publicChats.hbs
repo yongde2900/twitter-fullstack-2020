@@ -49,12 +49,9 @@
   $(function () {
     $('form').submit(function (e) {
       e.preventDefault(); // prevents page reloading
-      if (!$('#m').val().trim()) {
-        return
-      }
-      socket.emit('chat message', { id: socket.id, msg: $('#m').val() })
-      $('#m').val('')
-      return false
+      socket.emit('chat message', { id: socket.id, msg: $('#m').val() });
+      $('#m').val('');
+      return false;
     });
     socket.on('chat message', function (data) {
       const { id, msg, user, avatar } = data
@@ -182,11 +179,6 @@
 
       $('#messages').append(html)
     })
-    $(document).ready
-      (function () {
-        $(".card-body").scrollTop($(document).height() + 100);
-      }
-      );
   })
 </script>
 <script src="/js/popper.min.js"></script>
