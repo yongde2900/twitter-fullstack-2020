@@ -4,7 +4,7 @@ const chatController = require('../controllers/chatController')
 const db = require('../models')
 const User = db.User
 // -----------------------------------------------------------------------------------
-router.get('/', chatController.getPrivacyChat)
+// router.get('/', chatController.get)
 router.get('/public', chatController.getPublicChat)
 
 

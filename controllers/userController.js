@@ -10,10 +10,25 @@ const { Op } = require('sequelize')
 const bcrypt = require('bcryptjs')
 
 const db = require('../models')
+const user = require('../models/user')
 const User = db.User
 const Tweet = db.Tweet
 const Reply = db.Reply
 const Like = db.Like
+
+// -----------------------------------------------------------------------------------
+
+async function getImgurPath(path) {
+  if (path === '') {
+    return ''
+  }
+
+  imgur.setClientId(process.env.IMGUR_CLIENT_ID);
+
+  const img = await imgur.uploadFile(path)
+
+  return img.data.link
+}
 
 // -----------------------------------------------------------------------------------
 
@@ -185,8 +200,7 @@ module.exports = {
           User: reply.Tweet.dataValues.User.dataValues,
         }))
       }
-      const roomNumber = [currentUser.id, user.id].sort((a, b) => b - a)
-      const roomName = `roomName${roomNumber[1]}-${roomNumber[0]}`
+      console.log(currentUser)
       return res.render('profile', {
         user: user.toJSON(),
         FollowersLength: user.dataValues.Followers.length,
@@ -196,13 +210,12 @@ module.exports = {
         sidebarFollowings,
         page: req.query.page,
         currentUser,
-        navPage: 'profile',
-        roomName
+        navPage: 'profile'
       })
     })
   },
 
-  putUser: (req, res) => {
+  putUser: async (req, res) => {
     const nextURL = `/users/${req.params.id}/tweets`
 
     if (!req.body.name) {
@@ -217,50 +230,33 @@ module.exports = {
 
     // ---------------------------------------------------------------------------------------
 
-    const tempFileAddr = __dirname + '\\..\\icon\\temp.png'
-    const avatarPath = req.files.avatar ? req.files.avatar[0].path : tempFileAddr
-    const coverPath = req.files.cover ? req.files.cover[0].path : tempFileAddr
+    console.log('--------------------------------------------------------')
+    console.log('req.files' + req)
+    console.log('req.files.avatar' + req.files.avatar)
+    console.log('req.files.cover' + req.files.cover)
 
-    // console.log('--------------------------------------------------------------------------')
-    // console.log('avatarPath ' + avatarPath)
-    // console.log('coverPath ' + coverPath)
+    const currentUser = await User.findByPk(req.params.id)
+    const avatarPath = req.files.avatar ? req.files.avatar[0].path : ''
+    const coverPath = req.files.cover ? req.files.cover[0].path : ''
 
-    imgur.setClientId(process.env.IMGUR_CLIENT_ID);
+    console.log('currentUser ' + currentUser.id)
+    console.log('avatarPath ' + avatarPath)
+    console.log('coverPath ' + coverPath)
 
-    return Promise.all([
-      imgur.uploadFile(avatarPath).then((img) => {
-        return User.findByPk(req.params.id).then((user) => {
-          user.update({
-            name: req.body.name,
-            introduction: req.body.introduction,
-            avatar: req.files.avatar ? img.data.link : user.avatar,
-            cover: user.cover
-          })
-        })
-      }),
-      imgur.uploadFile(coverPath).then((img) => {
-        return User.findByPk(req.params.id).then((user) => {
-          user.update({
-            name: req.body.name,
-            introduction: req.body.introduction,
-            avatar: user.avatar,
-            cover: req.files.cover ? img.data.link : user.cover
-          })
-        })
-      })
-    ])
-      .then(() => {
-        return User.findByPk(req.params.id).then((user) => {
-          user.update({
-            name: req.body.name,
-            introduction: req.body.introduction,
-            avatar: user.avatar,
-            cover: user.cover
-          }).then(() => {
-            return res.redirect('back')
-          })
-        })
-      })
+    const avatarFile = avatarPath ? await getImgurPath(avatarPath) : currentUser.avatar
+    const coverFile = coverPath ? await getImgurPath(coverPath) : currentUser.cover
+
+    console.log('avatarFile ' + avatarFile)
+    console.log('coverFile ' + coverFile)
+
+    return currentUser.update({
+      name: req.body.name,
+      introduction: req.body.introduction,
+      avatar: avatarFile,
+      cover: coverFile
+    }).then(() => {
+      return res.redirect('back')
+    })
   },
 
   getEdit: (req, res) => {
