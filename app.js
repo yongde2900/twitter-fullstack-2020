@@ -45,7 +45,6 @@ io.on('connection', (socket) => {
   const str = socket.handshake.headers.referer.split('=')
   const roomName = str[1] || 'public'
   socket.join(`${roomName}`)
-
   console.log(`new connection ${socket.id}`)
   socket.to(`${roomName}`).broadcast.emit("hello", socket.request.user.name)
 
@@ -68,6 +67,13 @@ io.on('connection', (socket) => {
     io.to(`${roomName}`).emit('chat message', data)
   })
 
+  socket.on('private message notification', (data) => {
+    io.emit('private message notification', data)
+  })
+
+  socket.on('public message notification', (data) => {
+    io.emit('public message notification', data)
+  })
 
   socket.to(`${roomName}`).on('disconnect', () => {
     activeUsers.delete(socket.request.user)
@@ -77,7 +83,6 @@ io.on('connection', (socket) => {
 
   socket.on('history', () => {
     Chat.findAll({ raw: true, nest: true, order: [['createdAt', 'ASC']], include: [User], where: { roomName: roomName } }).then(msgs => {
-      console.log(msgs)
       msgs = msgs.map(item => ({
         user: item.User.name,
         avatar: item.User.avatar,
