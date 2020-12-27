@@ -146,6 +146,9 @@
   $(function () {
     $('form').submit(function (e) {
       e.preventDefault(); // prevents page reloading
+      if (!$('#m').val().trim()) {
+        return
+      }
       socket.emit('chat message', { id: socket.id, msg: $('#m').val() });
       $('#m').val('');
       return false;
