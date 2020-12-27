@@ -5,7 +5,7 @@ const chatController = require('../controllers/chatController')
 
 // -----------------------------------------------------------------------------------
 
-router.get('/public', chatController.getPublicChat)
+router.get('/', chatController.getPublicChat)
 
 // -----------------------------------------------------------------------------------
 
