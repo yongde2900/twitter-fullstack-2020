@@ -29,6 +29,8 @@ io.use(wrap(passport.session()));
 
 io.use((socket, next) => {
   if (socket.request.user) {
+    console.log(socket.handshake)
+    let roomName = socket.handshake.query.roomName
     next();
   } else {
     next(new Error('unauthorized'))
@@ -41,9 +43,15 @@ const Tweet = db.Tweet
 const Chat = db.Chat
 const User = db.User
 io.on('connection', (socket) => {
+  const roomName = socket.handshake.query.roomName
+
   console.log(`new connection ${socket.id}`)
   socket.broadcast.emit("hello", socket.request.user.name)
-
+  socket.on('createRoom', (data) => {
+    console.log('creat')
+    socket.join(`${data}`)
+    console.log(socket.room)
+  })
   socket.on('new user', (data) => {
     activeUsers.add(socket.request.user)
     io.emit('new user', [...activeUsers])
@@ -69,10 +77,24 @@ io.on('connection', (socket) => {
         formattedTime: moment(item.createdAt).format('a h:mm'),
         currentUser: item.User.id === socket.request.user.id ? true : false
       }))
+      console.log(msgs)
       io.emit('history', { msgs })
     })
   })
 });
+
+const io2 = require('socket.io')({
+  path: '/chats'
+})
+io2.on('connetction', (socket) => {
+  console.log('connect')
+  const data = 2
+  socket.emit('new', data)
+
+  socket.on('add', (data) => {
+    console.log(data)
+  })
+})
 
 server.listen(3000);
 

@@ -184,7 +184,9 @@ module.exports = {
           User: reply.Tweet.dataValues.User.dataValues,
         }))
       }
-      console.log(currentUser)
+      const roomNumber = [currentUser.id, user.id].sort((a, b) => b - a)
+      const roomName = `roomName${roomNumber[1]}-${roomNumber[0]}`
+      console.log(roomName)
       return res.render('profile', {
         user: user.toJSON(),
         FollowersLength: user.dataValues.Followers.length,
@@ -194,7 +196,8 @@ module.exports = {
         sidebarFollowings,
         page: req.query.page,
         currentUser,
-        navPage: 'profile'
+        navPage: 'profile',
+        roomName
       })
     })
   },
