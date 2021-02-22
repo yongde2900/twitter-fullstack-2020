@@ -26,11 +26,12 @@
             <span class="avatar">
               <img alt="avatar" src="{{user.avatar}}">
             </span>
-            <span class="float-right m-3">
+            <span class="float-right m-3 d-flex">
               {{#ifCond user.id currentUser.id }}
               <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
                 data-bs-target="#userEdit">編輯個人資料</button>
               {{else}}
+              <a href="/chats?roomName={{roomName}}" class="me-3"><button class="btn btn-outline-primary"><i class="far fa-envelope"></i></button></a>
               {{#if currentUser.isFollowed}}
               <form action="/followships/{{user.id}}?_method=DELETE" method="POST">
                 <button type="submit" class="btn btn-primary rounded-pill">正在跟隨</button>
